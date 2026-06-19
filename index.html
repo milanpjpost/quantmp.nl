@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuantMP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Design tokens ─────────────────────────────────────── */
+    :root {
+      --ink:       #0D1117;
+      --paper:     #F7F6F3;
+      --mid:       #6B7280;
+      --rule:      #E5E3DF;
+      --accent:    #1A56DB;   /* deep science blue */
+      --accent2:   #0E9F6E;   /* teal-green, data viz feel */
+      --surface:   #FFFFFF;
+      --mono:      'Courier New', monospace;
+
+      --fs-display: clamp(2.6rem, 6vw, 5rem);
+      --fs-h2:      clamp(1.6rem, 3.5vw, 2.6rem);
+      --fs-h3:      1.15rem;
+      --fs-body:    1rem;
+      --fs-small:   0.875rem;
+
+      --radius: 4px;
+      --gap: clamp(1.5rem, 4vw, 3rem);
+      --max: 1080px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.65;
+      font-size: var(--fs-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Typography ──────────────────────────────────────────── */
+    .display {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: var(--fs-display);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+    .display em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: var(--fs-h2);
+      line-height: 1.18;
+      letter-spacing: -0.015em;
+    }
+
+    h3 {
+      font-size: var(--fs-h3);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    p { color: var(--mid); max-width: 60ch; }
+    p.wide { max-width: 72ch; }
+    p.tight { max-width: 44ch; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ─── Layout helpers ─────────────────────────────────────── */
+    .container {
+      width: 100%;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 clamp(1.25rem, 5vw, 3rem);
+    }
+
+    section { padding: clamp(4rem, 8vw, 7rem) 0; }
+
+    .rule { border: none; border-top: 1px solid var(--rule); }
+
+    /* ─── NAV ────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(247, 246, 243, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 clamp(1.25rem, 5vw, 3rem);
+    }
+
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--mid);
+      font-size: var(--fs-small);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--ink); text-decoration: none; }
+
+    /* ─── Lang toggle ────────────────────────────────────────── */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--rule);
+      border-radius: 20px;
+      padding: 3px;
+      border: 1px solid #ddd;
+    }
+
+    .lang-btn {
+      padding: 4px 12px;
+      border: none;
+      border-radius: 16px;
+      background: transparent;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      color: var(--mid);
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.03em;
+    }
+
+    .lang-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 1px 3px rgba(0,0,0,.12);
+    }
+
+    /* hide inactive language content */
+    [data-en] { display: none; }
+    body.en [data-nl] { display: none; }
+    body.en [data-en] { display: revert; }
+
+    /* ─── HERO ───────────────────────────────────────────────── */
+    #hero {
+      padding-top: calc(60px + clamp(4rem, 8vw, 7rem));
+      padding-bottom: clamp(4rem, 8vw, 7rem);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: var(--fs-small);
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 24px; height: 2px;
+      background: var(--accent);
+    }
+
+    .hero-text p {
+      margin-top: 1.25rem;
+      font-size: 1.1rem;
+      max-width: 50ch;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2.25rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .75rem 1.5rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: .9rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all .2s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #1346b8;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--rule);
+    }
+    .btn-ghost:hover {
+      border-color: #bbb;
+      text-decoration: none;
+      background: #fff;
+    }
+
+    /* ─── HERO visual: animated code terminal ──────────────── */
+    .hero-visual {
+      position: relative;
+    }
+
+    .terminal {
+      background: #0D1117;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,.22), 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    .terminal-bar {
+      background: #1C2127;
+      padding: .55rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.r { background: #FF5F57; }
+    .dot.y { background: #FFBD2E; }
+    .dot.g { background: #28CA41; }
+
+    .terminal-title {
+      margin-left: auto;
+      font-size: .72rem;
+      color: #555;
+      font-family: var(--mono);
+    }
+
+    .terminal-body {
+      padding: 1.25rem 1.5rem;
+      font-family: var(--mono);
+      font-size: .8rem;
+      line-height: 1.7;
+    }
+
+    .t-comment { color: #6A737D; }
+    .t-keyword { color: #F97583; }
+    .t-fn { color: #79B8FF; }
+    .t-str { color: #9ECBFF; }
+    .t-num { color: #B392F0; }
+    .t-pkg { color: #85E89D; }
+    .t-plain { color: #E1E4E8; }
+
+    /* blinking cursor */
+    .cursor {
+      display: inline-block;
+      width: 8px; height: 1em;
+      background: var(--accent);
+      vertical-align: text-bottom;
+      animation: blink 1.1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ─── METRICS strip ─────────────────────────────────────── */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .metric {
+      background: var(--surface);
+      padding: 1.75rem 1.5rem;
+      text-align: center;
+    }
+
+    .metric-val {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.4rem;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .metric-val span { color: var(--accent); }
+
+    .metric-label {
+      font-size: var(--fs-small);
+      color: var(--mid);
+      margin-top: .35rem;
+    }
+
+    /* ─── SERVICES ──────────────────────────────────────────── */
+    #services { background: var(--surface); }
+
+    .section-label {
+      font-size: var(--fs-small);
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: .6rem;
+    }
+
+    .services-intro {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: end;
+      margin-bottom: 3.5rem;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .service-card {
+      background: var(--surface);
+      padding: 2rem 1.75rem;
+      transition: background .2s;
+    }
+
+    .service-card:hover { background: var(--paper); }
+
+    .service-icon {
+      width: 44px; height: 44px;
+      border-radius: var(--radius);
+      background: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      font-size: 1.3rem;
+    }
+
+    .service-card h3 { margin-bottom: .6rem; color: var(--ink); }
+    .service-card p { font-size: .9rem; }
+
+    /* ─── TOOLS / LANGUAGES ─────────────────────────────────── */
+    #tools { background: var(--paper); }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--gap);
+      align-items: center;
+    }
+
+    .lang-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      margin-top: 2rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem 1rem;
+      background: var(--surface);
+      border: 1.5px solid var(--rule);
+      border-radius: 100px;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .pill svg { flex-shrink: 0; }
+
+    .r-pill { border-color: #2065BD; color: #2065BD; background: #EFF6FF; }
+    .py-pill { border-color: #306998; color: #306998; background: #EFF6FF; }
+    .sql-pill { border-color: var(--accent2); color: #065F46; background: #ECFDF5; }
+    .bi-pill { border-color: #F59E0B; color: #92400E; background: #FFFBEB; }
+
+    .code-showcase {
+      background: #0D1117;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 16px 48px rgba(0,0,0,.18);
+    }
+
+    .tabs {
+      display: flex;
+      background: #161B22;
+      border-bottom: 1px solid #30363D;
+    }
+
+    .tab-btn {
+      padding: .6rem 1.1rem;
+      font-family: var(--mono);
+      font-size: .78rem;
+      color: #8B949E;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .15s;
+    }
+
+    .tab-btn.active { color: #E6EDF3; border-bottom-color: var(--accent); }
+    .tab-btn:hover { color: #E6EDF3; }
+
+    .code-content { padding: 1.25rem 1.5rem; }
+    .code-block { display: none; }
+    .code-block.active { display: block; }
+
+    .code-block pre {
+      font-family: var(--mono);
+      font-size: .78rem;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    /* ─── PROCESS ───────────────────────────────────────────── */
+    #process { background: var(--surface); }
+
+    .process-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 3rem;
+    }
+
+    .step {
+      background: var(--surface);
+      padding: 2rem 1.5rem;
+      position: relative;
+    }
+
+    .step-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 3rem;
+      line-height: 1;
+      color: var(--rule);
+      margin-bottom: .75rem;
+    }
+
+    .step h3 { color: var(--ink); margin-bottom: .45rem; }
+    .step p { font-size: .88rem; }
+
+    /* ─── CONTACT ───────────────────────────────────────────── */
+    #contact {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    #contact h2 { color: #fff; }
+    #contact p { color: #9CA3AF; max-width: 48ch; }
+
+    .contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+
+    .field label {
+      font-size: .82rem;
+      color: #9CA3AF;
+      font-weight: 500;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      background: #161B22;
+      border: 1px solid #30363D;
+      border-radius: var(--radius);
+      color: #E6EDF3;
+      padding: .65rem .85rem;
+      font-family: inherit;
+      font-size: .9rem;
+      transition: border-color .2s;
+      resize: vertical;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .field select option { background: #161B22; }
+
+    .btn-send {
+      align-self: flex-start;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: .75rem 1.75rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: background .2s;
+      font-family: inherit;
+    }
+
+    .btn-send:hover { background: #1346b8; }
+
+    .contact-details { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
+
+    .contact-item {
+      display: flex;
+      gap: .85rem;
+      align-items: flex-start;
+    }
+
+    .contact-icon {
+      width: 38px; height: 38px;
+      background: #161B22;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .contact-item-text strong { color: #E6EDF3; font-size: .85rem; }
+    .contact-item-text span { display: block; color: #9CA3AF; font-size: .85rem; }
+
+    /* ─── FOOTER ────────────────────────────────────────────── */
+    footer {
+      background: #0A0D12;
+      color: #6B7280;
+      font-size: var(--fs-small);
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem clamp(1.25rem, 5vw, 3rem);
+      max-width: var(--max);
+      margin: 0 auto;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-logo {
+      font-family: 'DM Serif Display', serif;
+      color: #4B5563;
+      font-size: 1rem;
+    }
+
+    .footer-logo span { color: #3B82F6; }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .hero-grid,
+      .services-intro,
+      .tools-grid,
+      .contact-inner { grid-template-columns: 1fr; }
+
+      .services-grid { grid-template-columns: 1fr; }
+      .process-steps { grid-template-columns: 1fr 1fr; }
+      .metrics { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .process-steps { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Smooth scroll reveal (JS-powered class) ─────────── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .55s ease, transform .55s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* form success */
+    .form-success {
+      display: none;
+      color: var(--accent2);
+      font-size: .9rem;
+      margin-top: .5rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ NAV ══════════ -->
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="#hero">Quant<span>MP</span></a>
+    <ul class="nav-links">
+      <li><a href="#services" data-nl>Diensten</a><a href="#services" data-en>Services</a></li>
+      <li><a href="#tools" data-nl>Aanpak</a><a href="#tools" data-en>Approach</a></li>
+      <li><a href="#process" data-nl>Werkwijze</a><a href="#process" data-en>Process</a></li>
+      <li><a href="#contact" data-nl>Contact</a><a href="#contact" data-en>Contact</a></li>
+    </ul>
+    <div class="lang-toggle" role="group" aria-label="Taal / Language">
+      <button class="lang-btn active" id="btn-nl" onclick="setLang('nl')">NL</button>
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-text fade-up">
+        <span class="hero-eyebrow" data-nl>Data-analyse Consultancy</span>
+        <span class="hero-eyebrow" data-en>Data Analysis Consulting</span>
+
+        <h1 class="display" data-nl>Data die <em>beslissingen</em> stuurt</h1>
+        <h1 class="display" data-en>Data that drives <em>decisions</em></h1>
+
+        <p data-nl>Onafhankelijk advies en analyse op het snijvlak van data-analyse, biostatistiek en wiskundige modellering. Ik vertaal complexe data naar heldere inzichten — in R of Python, altijd rigoureus.</p>
+        <p data-en>Independent consulting at the intersection of data analysis, biostatistics, and mathematical modelling. I translate complex data into clear insights — in R or Python, always rigorous.</p>
+
+        <div class="hero-ctas">
+          <a href="#contact" class="btn btn-primary" data-nl>Neem contact op</a>
+          <a href="#contact" class="btn btn-primary" data-en>Get in touch</a>
+          <a href="#services" class="btn btn-ghost" data-nl>Bekijk diensten</a>
+          <a href="#services" class="btn btn-ghost" data-en>View services</a>
+        </div>
+      </div>
+
+      <div class="hero-visual fade-up" style="transition-delay:.15s">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <span class="dot r"></span>
+            <span class="dot y"></span>
+            <span class="dot g"></span>
+            <span class="terminal-title">analysis.R</span>
+          </div>
+          <div class="terminal-body">
+            <div><span class="t-comment"># Survival analysis — Kaplan-Meier</span></div>
+            <div><span class="t-keyword">library</span><span class="t-plain">(</span><span class="t-pkg">survival</span><span class="t-plain">)</span></div>
+            <div><span class="t-keyword">library</span><span class="t-plain">(</span><span class="t-pkg">ggplot2</span><span class="t-plain">)</span></div>
+            <div>&nbsp;</div>
+            <div><span class="t-plain">fit </span><span class="t-keyword">&lt;-</span><span class="t-plain"> </span><span class="t-fn">survfit</span><span class="t-plain">(</span></div>
+            <div><span class="t-plain">&nbsp;&nbsp;</span><span class="t-fn">Surv</span><span class="t-plain">(time, status) </span><span class="t-keyword">~</span><span class="t-plain"> group,</span></div>
+            <div><span class="t-plain">&nbsp;&nbsp;data </span><span class="t-keyword">=</span><span class="t-plain"> patient_data</span></div>
+            <div><span class="t-plain">)</span></div>
+            <div>&nbsp;</div>
+            <div><span class="t-fn">ggsurvplot</span><span class="t-plain">(fit,</span></div>
+            <div><span class="t-plain">&nbsp;&nbsp;pval </span><span class="t-keyword">=</span><span class="t-plain"> </span><span class="t-num">TRUE</span><span class="t-plain">, conf.int </span><span class="t-keyword">=</span><span class="t-plain"> </span><span class="t-num">TRUE</span><span class="t-plain">,</span></div>
+            <div><span class="t-plain">&nbsp;&nbsp;palette </span><span class="t-keyword">=</span><span class="t-plain"> </span><span class="t-str">c("#1A56DB", "#0E9F6E")</span></div>
+            <div><span class="t-plain">)</span><span class="cursor"></span></div>
+          </div>
+        </div>
+
+        <div class="metrics" style="margin-top:1.25rem">
+          <div class="metric">
+            <div class="metric-val">10<span>+</span></div>
+            <div class="metric-label" data-nl>Jaar ervaring</div>
+            <div class="metric-label" data-en>Years experience</div>
+          </div>
+          <div class="metric">
+            <div class="metric-val">50<span>+</span></div>
+            <div class="metric-label" data-nl>Projecten voltooid</div>
+            <div class="metric-label" data-en>Projects completed</div>
+          </div>
+          <div class="metric">
+            <div class="metric-val">2</div>
+            <div class="metric-label" data-nl>Talen (R &amp; Python)</div>
+            <div class="metric-label" data-en>Languages (R &amp; Python)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule" />
+
+<!-- ══════════ SERVICES ══════════ -->
+<section id="services">
+  <div class="container">
+    <div class="services-intro fade-up">
+      <div>
+        <div class="section-label" data-nl>Diensten</div>
+        <div class="section-label" data-en>Services</div>
+        <h2 data-nl>Wat ik voor u kan doen</h2>
+        <h2 data-en>What I can do for you</h2>
+      </div>
+      <p class="wide" data-nl>Van exploratieve analyse tot gepubliceerbare modellen — ik bied end-to-end ondersteuning voor projecten in wetenschap, gezondheidszorg en bedrijfsleven.</p>
+      <p class="wide" data-en>From exploratory analysis to publication-ready models — I provide end-to-end support for projects in science, healthcare, and industry.</p>
+    </div>
+
+    <div class="services-grid fade-up" style="transition-delay:.1s">
+
+      <div class="service-card">
+        <div class="service-icon">📊</div>
+        <h3 data-nl>Data-analyse</h3>
+        <h3 data-en>Data Analysis</h3>
+        <p data-nl>Exploratieve analyse, datareiniging, visualisatie en rapportage. Van ruwe data naar helder verhaal — reproduceerbaar en gedocumenteerd.</p>
+        <p data-en>Exploratory analysis, data cleaning, visualisation, and reporting. From raw data to a clear narrative — reproducible and well-documented.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">🧬</div>
+        <h3 data-nl>Biostatistiek</h3>
+        <h3 data-en>Biostatistics</h3>
+        <p data-nl>Klinische trials, overlevingsanalyse, mixed-effects modellen, steekproefgrootte en power-berekeningen voor medisch en biologisch onderzoek.</p>
+        <p data-en>Clinical trials, survival analysis, mixed-effects models, sample size and power calculations for medical and biological research.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">📐</div>
+        <h3 data-nl>Statistische Modellering</h3>
+        <h3 data-en>Statistical Modelling</h3>
+        <p data-nl>Regressiemodellen, machine learning, tijdreeksanalyse en Bayesiaanse inferentie afgestemd op uw onderzoeksvraag.</p>
+        <p data-en>Regression models, machine learning, time-series analysis, and Bayesian inference tailored to your research question.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">🔬</div>
+        <h3 data-nl>Studieontwerp</h3>
+        <h3 data-en>Study Design</h3>
+        <p data-nl>Ondersteuning bij het opzetten van observationeel of experimenteel onderzoek: randomisatie, stratificatie en bias-reductie.</p>
+        <p data-en>Support in designing observational or experimental research: randomisation, stratification, and bias reduction.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">📈</div>
+        <h3 data-nl>Visualisatie & Rapportage</h3>
+        <h3 data-en>Visualisation & Reporting</h3>
+        <p data-nl>Publicatieklare figuren, interactieve dashboards en geautomatiseerde rapportages in R Markdown / Quarto of Python notebooks.</p>
+        <p data-en>Publication-ready figures, interactive dashboards, and automated reports in R Markdown / Quarto or Python notebooks.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">🎓</div>
+        <h3 data-nl>Coaching & Training</h3>
+        <h3 data-en>Coaching & Training</h3>
+        <p data-nl>Maatwerk workshops en begeleiding voor PhD-studenten, onderzoekers en teams die zelf willen leren werken met R of Python.</p>
+        <p data-en>Custom workshops and coaching for PhD students, researchers, and teams learning to work independently with R or Python.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="rule" />
+
+<!-- ══════════ TOOLS ══════════ -->
+<section id="tools">
+  <div class="container">
+    <div class="tools-grid">
+      <div class="fade-up">
+        <div class="section-label" data-nl>Tooling & Talen</div>
+        <div class="section-label" data-en>Tooling & Languages</div>
+        <h2 data-nl>Gebouwd op de standaard van de wetenschap</h2>
+        <h2 data-en>Built on the standard of science</h2>
+        <p style="margin-top:1rem" data-nl>Ik werk uitsluitend met open-source tools die transparantie en reproduceerbaarheid waarborgen. Elk project wordt opgeleverd als volledig gedocumenteerde, herbruikbare code.</p>
+        <p style="margin-top:1rem" data-en>I work exclusively with open-source tools that guarantee transparency and reproducibility. Every project is delivered as fully documented, reusable code.</p>
+
+        <div class="lang-pills">
+          <span class="pill r-pill">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#2065BD"/><text x="4" y="12" font-size="8" fill="white" font-weight="bold" font-family="sans-serif">R</text></svg>
+            R
+          </span>
+          <span class="pill py-pill">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#306998"/><text x="3.5" y="12" font-size="7" fill="white" font-weight="bold" font-family="sans-serif">Py</text></svg>
+            Python
+          </span>
+          <span class="pill sql-pill">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#059669"/><text x="2" y="12" font-size="7" fill="white" font-weight="bold" font-family="sans-serif">SQL</text></svg>
+            SQL
+          </span>
+          <span class="pill bi-pill">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#F59E0B"/><text x="3" y="12" font-size="8" fill="white" font-weight="bold" font-family="sans-serif">BI</text></svg>
+            Quarto / RMd
+          </span>
+          <span class="pill" style="border-color:#6366F1;color:#4338CA;background:#EEF2FF">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#6366F1"/><text x="2" y="12" font-size="7.5" fill="white" font-weight="bold" font-family="sans-serif">git</text></svg>
+            Git / GitHub
+          </span>
+        </div>
+
+        <p style="margin-top:1.75rem; font-size:.88rem" data-nl><strong style="color:var(--ink)">Packages:</strong> tidyverse, ggplot2, lme4, survival, Stan/brms, scikit-learn, pandas, statsmodels, lifelines, matplotlib / seaborn</p>
+        <p style="margin-top:1.75rem; font-size:.88rem" data-en><strong style="color:var(--ink)">Packages:</strong> tidyverse, ggplot2, lme4, survival, Stan/brms, scikit-learn, pandas, statsmodels, lifelines, matplotlib / seaborn</p>
+      </div>
+
+      <div class="fade-up" style="transition-delay:.15s">
+        <div class="code-showcase">
+          <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('r-tab', this)">R</button>
+            <button class="tab-btn" onclick="showTab('py-tab', this)">Python</button>
+          </div>
+          <div class="code-content">
+            <div class="code-block active" id="r-tab">
+              <pre><span class="t-comment"># Mixed-effects model (lme4)</span>
+<span class="t-keyword">library</span><span class="t-plain">(lme4)</span>
+<span class="t-keyword">library</span><span class="t-plain">(broom.mixed)</span>
+
+<span class="t-plain">model </span><span class="t-keyword">&lt;-</span><span class="t-plain"> </span><span class="t-fn">lmer</span><span class="t-plain">(</span>
+<span class="t-plain">  outcome </span><span class="t-keyword">~</span><span class="t-plain"> time </span><span class="t-keyword">*</span><span class="t-plain"> treatment</span>
+<span class="t-plain">          + (1 </span><span class="t-keyword">|</span><span class="t-plain"> patient_id),</span>
+<span class="t-plain">  data </span><span class="t-keyword">=</span><span class="t-plain"> trial_data,</span>
+<span class="t-plain">  REML </span><span class="t-keyword">=</span><span class="t-plain"> </span><span class="t-num">TRUE</span>
+<span class="t-plain">)</span>
+
+<span class="t-fn">tidy</span><span class="t-plain">(model, conf.int </span><span class="t-keyword">=</span><span class="t-plain"> </span><span class="t-num">TRUE</span><span class="t-plain">)</span></pre>
+            </div>
+            <div class="code-block" id="py-tab">
+              <pre><span class="t-comment"># Logistic regression (scikit-learn)</span>
+<span class="t-keyword">from</span><span class="t-plain"> sklearn.linear_model </span><span class="t-keyword">import</span><span class="t-plain"> LogisticRegression</span>
+<span class="t-keyword">from</span><span class="t-plain"> sklearn.pipeline </span><span class="t-keyword">import</span><span class="t-plain"> Pipeline</span>
+<span class="t-keyword">from</span><span class="t-plain"> sklearn.preprocessing </span><span class="t-keyword">import</span><span class="t-plain"> StandardScaler</span>
+
+<span class="t-plain">pipe </span><span class="t-keyword">=</span><span class="t-plain"> </span><span class="t-fn">Pipeline</span><span class="t-plain">([</span>
+<span class="t-plain">  (</span><span class="t-str">"scaler"</span><span class="t-plain">, </span><span class="t-fn">StandardScaler</span><span class="t-plain">()),</span>
+<span class="t-plain">  (</span><span class="t-str">"clf"</span><span class="t-plain">,   </span><span class="t-fn">LogisticRegression</span><span class="t-plain">(</span>
+<span class="t-plain">              C</span><span class="t-keyword">=</span><span class="t-num">0.1</span><span class="t-plain">, max_iter</span><span class="t-keyword">=</span><span class="t-num">500</span>)),</span>
+<span class="t-plain">])</span>
+
+<span class="t-plain">pipe.</span><span class="t-fn">fit</span><span class="t-plain">(X_train, y_train)</span>
+<span class="t-plain">pipe.</span><span class="t-fn">score</span><span class="t-plain">(X_test, y_test)</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule" />
+
+<!-- ══════════ PROCESS ══════════ -->
+<section id="process">
+  <div class="container">
+    <div class="fade-up" style="max-width:48ch">
+      <div class="section-label" data-nl>Werkwijze</div>
+      <div class="section-label" data-en>Process</div>
+      <h2 data-nl>Hoe een samenwerking eruitziet</h2>
+      <h2 data-en>How a collaboration looks</h2>
+    </div>
+
+    <div class="process-steps fade-up" style="transition-delay:.1s">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3 data-nl>Intake gesprek</h3>
+        <h3 data-en>Discovery call</h3>
+        <p data-nl>We bespreken uw datavraag, tijdlijn en budget. Geen verplichtingen — wel eerlijk advies over haalbaarheid.</p>
+        <p data-en>We discuss your data question, timeline, and budget. No commitments — just honest advice on feasibility.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3 data-nl>Analyse & ontwerp</h3>
+        <h3 data-en>Analysis design</h3>
+        <p data-nl>Ik stel een analyseplan op met methode, software-keuze en verwachte uitkomsten voor uw goedkeuring.</p>
+        <p data-en>I draft an analysis plan outlining method, software choice, and expected outputs for your approval.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3 data-nl>Uitvoering</h3>
+        <h3 data-en>Execution</h3>
+        <p data-nl>Reproduceerbare analyse in R of Python, met versiecontrole via Git en tussentijdse updates.</p>
+        <p data-en>Reproducible analysis in R or Python, with version control via Git and regular progress updates.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h3 data-nl>Oplevering</h3>
+        <h3 data-en>Delivery</h3>
+        <p data-nl>Rapport, code en visualisaties — publicatieklaar. Inclusief mondelinge toelichting en revisieronde.</p>
+        <p data-en>Report, code, and visualisations — publication-ready. Includes verbal walkthrough and one revision round.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CONTACT ══════════ -->
+<section id="contact">
+  <div class="container">
+    <div class="contact-inner">
+      <div class="fade-up">
+        <div class="section-label" style="color:#60A5FA" data-nl>Contact</div>
+        <div class="section-label" style="color:#60A5FA" data-en>Contact</div>
+        <h2 data-nl>Een project in gedachten?</h2>
+        <h2 data-en>Have a project in mind?</h2>
+        <p style="margin-top:.75rem" data-nl>Stuur een bericht en ik reageer binnen één werkdag. Ik werk voor academici, ziekenhuizen, start-ups en gevestigde bedrijven.</p>
+        <p style="margin-top:.75rem" data-en>Send a message and I'll respond within one business day. I work with academics, hospitals, start-ups, and established companies.</p>
+
+        <div class="contact-details">
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="18" height="18" fill="none" stroke="#60A5FA" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <div class="contact-item-text">
+              <strong data-nl>E-mail</strong><strong data-en>Email</strong>
+              <span>info@quantmp.nl</span>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="18" height="18" fill="none" stroke="#60A5FA" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div class="contact-item-text">
+              <strong data-nl>Locatie</strong><strong data-en>Location</strong>
+              <span data-nl>Nederland (remote beschikbaar)</span>
+              <span data-en>The Netherlands (remote available)</span>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="18" height="18" fill="none" stroke="#60A5FA" stroke-width="1.5" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <div class="contact-item-text">
+              <strong data-nl>Beschikbaarheid</strong><strong data-en>Availability</strong>
+              <span data-nl>Vrijwel direct inzetbaar</span>
+              <span data-en>Available on short notice</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fade-up" style="transition-delay:.15s">
+        <div class="contact-form">
+          <div class="form-row">
+            <div class="field">
+              <label data-nl>Naam</label>
+              <label data-en>Name</label>
+              <input type="text" id="cf-name" placeholder="Jan de Vries" />
+            </div>
+            <div class="field">
+              <label data-nl>E-mail</label>
+              <label data-en>Email</label>
+              <input type="email" id="cf-email" placeholder="jan@organisatie.nl" />
+            </div>
+          </div>
+          <div class="field">
+            <label data-nl>Organisatie (optioneel)</label>
+            <label data-en>Organisation (optional)</label>
+            <input type="text" id="cf-org" placeholder="Universiteit / Bedrijf" />
+          </div>
+          <div class="field">
+            <label data-nl>Type aanvraag</label>
+            <label data-en>Request type</label>
+            <select id="cf-type">
+              <option value="" data-nl>Selecteer...</option>
+              <option value="" data-en>Select...</option>
+              <option value="analysis" data-nl>Data-analyse</option>
+              <option value="analysis" data-en>Data analysis</option>
+              <option value="biostat" data-nl>Biostatistiek</option>
+              <option value="biostat" data-en>Biostatistics</option>
+              <option value="model" data-nl>Modellering</option>
+              <option value="model" data-en>Modelling</option>
+              <option value="training" data-nl>Training / Coaching</option>
+              <option value="training" data-en>Training / Coaching</option>
+              <option value="other" data-nl>Anders</option>
+              <option value="other" data-en>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label data-nl>Uw vraag</label>
+            <label data-en>Your question</label>
+            <textarea id="cf-msg" rows="4" placeholder="Beschrijf uw project of vraag..." data-nl></textarea>
+            <textarea id="cf-msg-en" rows="4" placeholder="Describe your project or question..." data-en></textarea>
+          </div>
+          <button class="btn-send" onclick="submitForm()" data-nl>Verstuur bericht →</button>
+          <button class="btn-send" onclick="submitForm()" data-en>Send message →</button>
+          <span class="form-success" id="form-success" data-nl>✓ Bericht ontvangen — ik reageer binnen één werkdag.</span>
+          <span class="form-success" id="form-success" data-en>✓ Message received — I'll respond within one business day.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+  <div class="footer-inner">
+    <span class="footer-logo">Data<span>Consult</span></span>
+    <span data-nl>© 2025 PostAnalytics · Nederland · KVK 12345678</span>
+    <span data-en>© 2025 PostAnalytics · The Netherlands · CoC 12345678</span>
+  </div>
+</footer>
+
+<script>
+  /* ─── Language toggle ─────────────────────────────────── */
+  function setLang(lang) {
+    const showEn = lang === 'en';
+    document.body.classList.toggle('en', showEn);
+    document.getElementById('btn-nl').classList.toggle('active', !showEn);
+    document.getElementById('btn-en').classList.toggle('active', showEn);
+    document.documentElement.lang = lang;
+    localStorage.setItem('dc-lang', lang);
+
+    // Explicitly show/hide language-specific elements so only one language is visible
+    document.querySelectorAll('[data-en]').forEach(el => {
+      el.style.display = showEn ? '' : 'none';
+      el.setAttribute('aria-hidden', showEn ? 'false' : 'true');
+    });
+    document.querySelectorAll('[data-nl]').forEach(el => {
+      el.style.display = showEn ? 'none' : '';
+      el.setAttribute('aria-hidden', showEn ? 'true' : 'false');
+    });
+  }
+
+  // Restore saved preference (default: nl)
+  const saved = localStorage.getItem('dc-lang') || 'nl';
+  // Apply saved language to ensure initial visibility is correct
+  setLang(saved);
+
+  /* ─── Code tab switcher ──────────────────────────────── */
+  function showTab(id, btn) {
+    document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  /* ─── Scroll reveal ──────────────────────────────────── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  /* ─── Contact form (demo) ────────────────────────────── */
+  function submitForm() {
+    const name  = document.getElementById('cf-name').value.trim();
+    const email = document.getElementById('cf-email').value.trim();
+    if (!name || !email) {
+      alert(document.body.classList.contains('en')
+        ? 'Please fill in at least your name and email.'
+        : 'Vul minimaal uw naam en e-mailadres in.');
+      return;
+    }
+    document.querySelectorAll('.form-success').forEach(el => el.style.display = 'block');
+  }
+</script>
+
+</body>
+</html>
